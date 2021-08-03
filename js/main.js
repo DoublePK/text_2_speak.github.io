@@ -12,10 +12,17 @@ const synth = window.speechSynthesis;
  const pitchValue = document.querySelector('#pitch-value');
  const body = document.querySelector('body');
 
+ //Browser identifier
+ //Firefox 1.0+
+ var isFirefox = typeof InstallTrigger !== 'undefined';
+
+ //Chrome 1+
+ var isChrome = !!window.chrome;
+
  //Init Voices array
  let voices = [];
 
- synth.addEventListener('voiceschanged', () => {
+ const getVoices = () => {
    voices = synth.getVoices();
    
 
@@ -32,7 +39,27 @@ const synth = window.speechSynthesis;
      voiceSelect.appendChild(option);
 
    });
- });
+ };
+
+
+ /*getVoices();
+if (synth.onvoiceschanged !== undefined) {
+  synth.onvoiceschanged = getVoices;
+}*/
+
+//Fix for duplication, run code depending on the browser
+if(isFirefox){
+  getVoices();
+}
+// if (isChrome) {
+//   if (synth.onvoiceschanged !== undefined) {
+//       synth.onvoiceschanged = getVoices();
+//   }
+// } 
+if(isChrome){
+  synth.addEventListener("voiceschanged", () => getVoices());
+}
+
 
  //Speak
  const speak = () => {
@@ -45,21 +72,21 @@ const synth = window.speechSynthesis;
   if(textInput.value !== ''){
     //Add background animation
     body.style.background = "#141414 url(img/wave.gif)";
-    body.style.backgroundRepeat = 'repeate-x';
+    body.style.backgroundRepeat = 'repeat-x';
     body.style.backgroundSize = '100% 100%';
     
     //Get speak text
     const speakText = new SpeechSynthesisUtterance(textInput.value);
     
     //Speak end
-    speakText.onend = e =>{
+    speakText.onend = e => {
       console.log('Done Speaking ...');
       body.style.background = '#141414';
     }
 
     //Speak error
     speakText.onerror = e => {
-      console.log('Something was wrong');
+      console.log('Something was wrong..');
     }
 
     //Selected Voice
@@ -74,7 +101,7 @@ const synth = window.speechSynthesis;
 
     //set pitch and rate
     speakText.rate = rate.value;
-    speak.pitch = pitch.value;
+    speakText.pitch = pitch.value;
 
     //Speak
     synth.speak(speakText);
